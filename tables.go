@@ -50,7 +50,7 @@ func (t Table) Fizz() string {
 	// Write columns
 	if t.useTimestampMacro {
 		for _, c := range t.Columns {
-			if c.Name == "created_at" || c.Name == "updated_at" {
+			if c.Name == CREATED_COL.Name || c.Name == UPDATED_COL.Name {
 				continue
 			}
 			buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
@@ -64,10 +64,10 @@ func (t Table) Fizz() string {
 		buff.WriteString("\tt.Timestamps()\n")
 	} else if timestampsOpt {
 		// Missing timestamp columns will only be added on fizz execution, so we need to consider them as present.
-		if !t.HasColumns("created_at") {
+		if !t.HasColumns(CREATED_COL.Name) {
 			buff.WriteString(fmt.Sprintf("\t%s\n", CREATED_COL.String()))
 		}
-		if !t.HasColumns("updated_at") {
+		if !t.HasColumns(UPDATED_COL.Name) {
 			buff.WriteString(fmt.Sprintf("\t%s\n", UPDATED_COL.String()))
 		}
 	}
@@ -129,7 +129,7 @@ func (t *Table) Column(name string, colType string, options Options) error {
 	} else {
 		t.Columns = append(t.Columns, c)
 	}
-	if (name == "created_at" || name == "updated_at") && colType != "timestamp" {
+	if (name == CREATED_COL.Name || name == UPDATED_COL.Name) && colType != "timestamp" {
 		// timestamp macro only works for time type
 		t.useTimestampMacro = false
 	}
@@ -198,10 +198,10 @@ func (t *Table) Timestamp(name string) error {
 
 // Timestamps adds created_at and updated_at columns to the Table definition.
 func (t *Table) Timestamps() error {
-	if err := t.Timestamp("created_at"); err != nil {
+	if err := t.Column(CREATED_COL.Name, CREATED_COL.ColType, CREATED_COL.Options); err != nil {
 		return err
 	}
-	return t.Timestamp("updated_at")
+	return t.Column(UPDATED_COL.Name, UPDATED_COL.ColType, UPDATED_COL.Options)
 }
 
 // PrimaryKey adds a primary key to the table. It's useful to define a composite
@@ -283,9 +283,9 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 	}
 
 	if t.Options["timestamps"].(bool) {
-		if !t.HasColumns("created_at", "updated_at") {
-			t.Timestamp("created_at")
-			t.Timestamp("updated_at")
+		if !t.HasColumns(CREATED_COL.Name, UPDATED_COL.Name) {
+			t.Column(CREATED_COL.Name, CREATED_COL.ColType, CREATED_COL.Options)
+			t.Column(UPDATED_COL.Name, UPDATED_COL.ColType, UPDATED_COL.Options)
 		}
 	}
 
